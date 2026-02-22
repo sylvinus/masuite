@@ -1,0 +1,5 @@
+{
+  "base_ram": 1536,
+  "base_vcpu": 1,
+  "base_disk": 2048
+}

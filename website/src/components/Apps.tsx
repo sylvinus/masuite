@@ -8,9 +8,9 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-import appsData from "../../public/data/apps.json";
-import vpsProviders from "../../public/data/vps-providers.json";
-import infraData from "../../public/data/infra.json";
+import appsData from "../data/apps.json";
+import vpsProviders from "../data/vps-providers.json";
+import infraData from "../data/infra.json";
 
 // ── UI-specific icon/color mapping ──────────────────────────────
 const APP_UI: Record<string, { icon: typeof FileText; color: string }> = {

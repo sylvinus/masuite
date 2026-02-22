@@ -1,10 +1,10 @@
-// Generates website/public/data/apps.json and infra.json from services/*/metadata.json.
+// Generates website/src/data/apps.json and infra.json from services/*/metadata.json.
 // Run automatically via `npm run prebuild` or manually with `node scripts/sync-apps.js`.
 const fs = require("fs");
 const path = require("path");
 
 const servicesDir = path.resolve(__dirname, "../../services");
-const outDir = path.resolve(__dirname, "../public/data");
+const outDir = path.resolve(__dirname, "../src/data");
 
 fs.mkdirSync(outDir, { recursive: true });
 

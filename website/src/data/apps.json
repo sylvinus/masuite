@@ -1,0 +1,58 @@
+[
+  {
+    "id": "docs",
+    "ram": 512,
+    "vcpu": 0.5,
+    "disk": 1024,
+    "github": "https://github.com/suitenumerique/impress",
+    "default_enabled": true
+  },
+  {
+    "id": "meet",
+    "ram": 1024,
+    "vcpu": 1,
+    "disk": 1024,
+    "github": "https://github.com/suitenumerique/meet",
+    "default_enabled": true
+  },
+  {
+    "id": "drive",
+    "ram": 1024,
+    "vcpu": 1,
+    "disk": 2048,
+    "github": "https://github.com/suitenumerique/drive",
+    "default_enabled": true
+  },
+  {
+    "id": "messages",
+    "ram": 1536,
+    "vcpu": 0.5,
+    "disk": 2048,
+    "github": "https://github.com/suitenumerique/lasuite-messages",
+    "default_enabled": false
+  },
+  {
+    "id": "projects",
+    "ram": 256,
+    "vcpu": 0.25,
+    "disk": 1024,
+    "github": "https://github.com/suitenumerique/lasuite-projects",
+    "default_enabled": false
+  },
+  {
+    "id": "conversations",
+    "ram": 512,
+    "vcpu": 0.5,
+    "disk": 1024,
+    "github": "https://github.com/suitenumerique/lasuite-conversations",
+    "default_enabled": false
+  },
+  {
+    "id": "calendars",
+    "ram": 512,
+    "vcpu": 0.5,
+    "disk": 1024,
+    "github": "https://github.com/suitenumerique/calendars",
+    "default_enabled": false
+  }
+]
