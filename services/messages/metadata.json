@@ -1,0 +1,23 @@
+{
+  "label": "Messages",
+  "description": "Email (Gmail)",
+  "port": 9124,
+  "subdomain": "mail",
+  "redis_db": 3,
+  "default_enabled": false,
+  "is_django": true,
+  "settings_module": "messages.settings",
+  "settings_overlay": "messages_local",
+  "backend_service": "messages-backend",
+  "s3_bucket": "messages-storage",
+  "logo": null,
+  "services": [
+    "messages-backend", "messages-celery", "messages-frontend",
+    "messages-mta-in", "messages-mta-out", "messages-socks-proxy",
+    "opensearch", "rspamd"
+  ],
+  "ram": 1536,
+  "vcpu": 0.5,
+  "disk": 2048,
+  "github": "https://github.com/suitenumerique/lasuite-messages"
+}

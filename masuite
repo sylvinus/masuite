@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+if ! command -v python3 &>/dev/null; then
+    echo "Error: python3 is required but not installed."
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        case "$ID" in
+            debian|ubuntu) echo "Install it with: sudo apt-get install -y python3" ;;
+        esac
+    fi
+    exit 1
+fi
+
+cd "$SCRIPT_DIR"
+exec python3 -B -m cli "$@"

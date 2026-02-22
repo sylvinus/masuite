@@ -1,0 +1,86 @@
+# Calendars - Shared calendar
+
+services:
+
+  calendars-backend:
+    image: lasuite/calendars-backend:${CALENDARS_VERSION:-main}
+    profiles: [calendars]
+    restart: unless-stopped
+    volumes:
+      - ./config/settings/calendars_local.py:/app/calendars_local.py:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: calendars_local
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SECRET_KEY: ${CALENDARS_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: "*"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${CALENDARS_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/7
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/7
+      S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      OIDC_RP_CLIENT_ID: masuite
+      OIDC_RP_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      OIDC_OP_AUTHORIZATION_ENDPOINT: ${KEYCLOAK_URL}/realms/masuite/protocol/openid-connect/auth
+      OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/token
+      OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/certs
+      OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/userinfo
+      OIDC_RP_SIGN_ALGO: RS256
+      OIDC_RP_SCOPES: "openid email"
+      # CalDAV
+      CALDAV_URL: http://calendars-caldav:80
+      CALDAV_INBOUND_API_KEY: ${CALENDARS_CALDAV_INBOUND_API_KEY}
+      CALDAV_OUTBOUND_API_KEY: ${CALENDARS_CALDAV_OUTBOUND_API_KEY}
+      CALDAV_CALLBACK_BASE_URL: http://calendars-backend:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  calendars-celery:
+    image: lasuite/calendars-backend:${CALENDARS_VERSION:-main}
+    profiles: [calendars]
+    restart: unless-stopped
+    command: celery -A calendars.celery_app worker --beat -l INFO
+    environment:
+      DJANGO_SETTINGS_MODULE: calendars.settings
+      DJANGO_CONFIGURATION: Production
+      DJANGO_SECRET_KEY: ${CALENDARS_SECRET_KEY}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${CALENDARS_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/7
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/7
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  calendars-frontend:
+    image: lasuite/calendars-frontend:${CALENDARS_VERSION:-main}
+    profiles: [calendars]
+    restart: unless-stopped
+
+  calendars-caldav:
+    image: lasuite/calendars-caldav:${CALENDARS_VERSION:-main}
+    profiles: [calendars]
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: ${CALENDARS_DB_NAME}
+      PGUSER: ${SHARED_DB_USER}
+      PGPASSWORD: ${SHARED_DB_PASSWORD}
+      CALDAV_BASE_URI: /api/v1.0/caldav/
+      CALDAV_INBOUND_API_KEY: ${CALENDARS_CALDAV_INBOUND_API_KEY}
+      CALDAV_OUTBOUND_API_KEY: ${CALENDARS_CALDAV_OUTBOUND_API_KEY}
+      CALDAV_CALLBACK_URL: http://calendars-backend:8000/api/v1.0/caldav/callback/
+    depends_on:
+      postgres:
+        condition: service_healthy

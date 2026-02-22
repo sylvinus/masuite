@@ -1,0 +1,20 @@
+services:
+  dev:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./next.config.ts:/app/next.config.ts
+      - ./tailwind.config.ts:/app/tailwind.config.ts
+      - ./postcss.config.mjs:/app/postcss.config.mjs
+    environment:
+      WATCHPACK_POLLING: "true"
+
+  build:
+    build: .
+    command: sh -c "npm run build && cp -r out/. /output/"
+    volumes:
+      - ./out:/output
+    profiles: [build]

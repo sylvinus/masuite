@@ -1,0 +1,56 @@
+# Projects - Kanban project management (Planka fork)
+
+services:
+
+  projects:
+    image: lasuite/projects:${PROJECTS_VERSION:-1.27.3}
+    platform: linux/amd64
+    profiles: [projects]
+    restart: unless-stopped
+    extra_hosts:
+      - "localhost:host-gateway"
+    # Override entrypoint to fix /etc/hosts: Docker's default 127.0.0.1 localhost
+    # entry takes precedence over our extra_hosts entry. We need localhost to resolve
+    # to the host gateway so the OIDC issuer (localhost:9200) is reachable.
+    # Note: sed -i fails on Docker bind-mounted /etc/hosts, so we use cp trick.
+    user: "0:0"
+    entrypoint: ["sh", "-c", "grep -v 'localhost' /etc/hosts > /tmp/hosts && echo '172.17.0.1 localhost' >> /tmp/hosts && cat /tmp/hosts > /etc/hosts && su -s /bin/sh node -c './start.sh'"]
+    volumes:
+      - projects-avatars:/app/public/user-avatars
+      - projects-backgrounds:/app/public/project-background-images
+      - projects-attachments:/app/private/attachments
+    environment:
+      BASE_URL: ${PROJECTS_URL}
+      DATABASE_URL: postgresql://${SHARED_DB_USER}:${SHARED_DB_PASSWORD}@postgres:5432/${PROJECTS_DB_NAME}
+      SECRET_KEY: ${PROJECTS_SECRET_KEY}
+      TRUST_PROXY: "1"
+      # OIDC (Planka-style config, not Django)
+      OIDC_ISSUER: ${KEYCLOAK_URL}/realms/masuite
+      OIDC_CLIENT_ID: masuite
+      OIDC_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      OIDC_SCOPES: "openid email profile"
+      OIDC_ENFORCED: "true"
+      OIDC_ID_TOKEN_SIGNED_RESPONSE_ALG: RS256
+      OIDC_USERINFO_SIGNED_RESPONSE_ALG: RS256
+      OIDC_CLAIMS_SOURCE: userinfo
+      OIDC_EMAIL_ATTRIBUTE: email
+      OIDC_FULLNAME_ATTRIBUTES: "given_name,family_name"
+      OIDC_IGNORE_USERNAME: "true"
+      OIDC_IGNORE_ROLES: "true"
+      # Gaufre (app navigation widget)
+      LAGAUFRE_WIDGET_API_URL: ${GAUFRE_SERVICES_URL:-}
+      LAGAUFRE_WIDGET_PATH: ${GAUFRE_SCRIPT_URL:-}lagaufre.js
+      # S3 storage
+      S3_ENDPOINT: ${S3_URL:-http://rustfs:9000}
+      S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      S3_BUCKET: projects-storage
+      S3_FORCE_PATH_STYLE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  projects-avatars:
+  projects-backgrounds:
+  projects-attachments:

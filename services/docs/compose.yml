@@ -1,0 +1,90 @@
+# Docs - Collaborative documents
+
+services:
+
+  docs-backend:
+    image: lasuite/impress-backend:${DOCS_VERSION:-v4.5.0}
+    profiles: [docs]
+    restart: unless-stopped
+    volumes:
+      - ./config/settings/impress_local.py:/app/impress_local.py:ro
+      - ./config/docs-theme.json:/app/docs-theme.json:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: impress_local
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SECRET_KEY: ${DOCS_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: "*"
+      THEME_CUSTOMIZATION_FILE_PATH: /app/docs-theme.json
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DOCS_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_STORAGE_BUCKET_NAME: docs-storage
+      OIDC_RP_CLIENT_ID: masuite
+      OIDC_RP_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      OIDC_OP_AUTHORIZATION_ENDPOINT: ${KEYCLOAK_URL}/realms/masuite/protocol/openid-connect/auth
+      OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/token
+      OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/certs
+      OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/userinfo
+      OIDC_RP_SIGN_ALGO: RS256
+      OIDC_RP_SCOPES: "openid email"
+      COLLABORATION_SERVER_URL: ${DOCS_URL}/collaboration
+      COLLABORATION_SERVER_SECRET: ${DOCS_SECRET_KEY}
+      COLLABORATION_API_URL: ${DOCS_URL}/collaboration/api/
+      COLLABORATION_BACKEND_BASE_URL: ${DOCS_URL}
+      Y_PROVIDER_API_BASE_URL: http://docs-yprovider:4444/api/
+      Y_PROVIDER_API_KEY: ${DOCS_SECRET_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  docs-celery:
+    image: lasuite/impress-backend:${DOCS_VERSION:-v4.5.0}
+    profiles: [docs]
+    restart: unless-stopped
+    command: celery -A impress.celery_app worker -l INFO
+    environment:
+      DJANGO_SETTINGS_MODULE: impress.settings
+      DJANGO_CONFIGURATION: Production
+      DJANGO_SECRET_KEY: ${DOCS_SECRET_KEY}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DOCS_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_STORAGE_BUCKET_NAME: docs-storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  docs-frontend:
+    image: lasuite/impress-frontend:${DOCS_VERSION:-v4.5.0}
+    profiles: [docs]
+    restart: unless-stopped
+
+  docs-yprovider:
+    image: lasuite/impress-y-provider:${DOCS_VERSION:-v4.5.0}
+    profiles: [docs]
+    restart: unless-stopped
+    environment:
+      Y_PROVIDER_API_BASE_URL: http://docs-yprovider:4444/api/
+      Y_PROVIDER_API_KEY: ${DOCS_SECRET_KEY}
+      COLLABORATION_SERVER_SECRET: ${DOCS_SECRET_KEY}
+      COLLABORATION_SERVER_ORIGIN: ${DOCS_URL}
+      COLLABORATION_BACKEND_BASE_URL: http://docs-backend:8000
+      COLLABORATION_LOGGING: "true"

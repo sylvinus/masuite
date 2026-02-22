@@ -1,0 +1,19 @@
+{
+  "label": "Meet",
+  "description": "Video conferencing (Google Meet)",
+  "port": 9122,
+  "subdomain": "meet",
+  "redis_db": 1,
+  "default_enabled": false,
+  "is_django": true,
+  "settings_module": "meet.settings",
+  "settings_overlay": "meet_local",
+  "backend_service": "meet-backend",
+  "s3_bucket": "meet-storage",
+  "logo": "https://lasuite.numerique.gouv.fr/assets/products/visio.svg",
+  "services": ["meet-backend", "meet-celery", "meet-frontend", "livekit"],
+  "ram": 1024,
+  "vcpu": 1,
+  "disk": 1024,
+  "github": "https://github.com/suitenumerique/meet"
+}

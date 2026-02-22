@@ -1,0 +1,51 @@
+# Conversations - AI chatbot
+
+services:
+
+  conversations-backend:
+    image: lasuite/conversations-backend:${CONVERSATIONS_VERSION:-v0.0.13}
+    platform: linux/amd64
+    profiles: [conversations]
+    restart: unless-stopped
+    volumes:
+      - ./config/settings/conversations_local.py:/app/conversations_local.py:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: conversations_local
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SECRET_KEY: ${CONVERSATIONS_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: "*"
+      LOGIN_REDIRECT_URL: "/"
+      LOGIN_REDIRECT_URL_FAILURE: "/"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${CONVERSATIONS_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/5
+      S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_STORAGE_BUCKET_NAME: conversations-storage
+      OIDC_RP_CLIENT_ID: masuite
+      OIDC_RP_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      OIDC_OP_AUTHORIZATION_ENDPOINT: ${KEYCLOAK_URL}/realms/masuite/protocol/openid-connect/auth
+      OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/token
+      OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/certs
+      OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/userinfo
+      OIDC_RP_SIGN_ALGO: RS256
+      OIDC_RP_SCOPES: "openid email"
+      AI_BASE_URL: ${CONVERSATIONS_LLM_BACKEND:-}
+      AI_API_KEY: ${CONVERSATIONS_LLM_API_KEY:-}
+      AI_MODEL: ${CONVERSATIONS_LLM_MODEL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  conversations-frontend:
+    image: lasuite/conversations-frontend:${CONVERSATIONS_VERSION:-v0.0.13}
+    platform: linux/amd64
+    profiles: [conversations]
+    restart: unless-stopped

@@ -1,0 +1,19 @@
+(conversations) {
+	request_body {
+		max_size 100MB
+	}
+
+	handle /api/* {
+		reverse_proxy conversations-backend:8000
+	}
+	handle /admin/* {
+		reverse_proxy conversations-backend:8000
+	}
+	handle /static/* {
+		reverse_proxy conversations-backend:8000
+	}
+
+	handle {
+		reverse_proxy conversations-frontend:8080
+	}
+}

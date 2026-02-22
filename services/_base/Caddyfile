@@ -1,0 +1,21 @@
+(homepage) {
+	root * /srv/homepage
+	header /gaufre-services.json Access-Control-Allow-Origin *
+	file_server
+}
+
+(keycloak) {
+	reverse_proxy keycloak:8080
+}
+
+(rustfs-console) {
+	reverse_proxy rustfs:9001
+}
+
+(rustfs-s3) {
+	reverse_proxy rustfs:9000
+}
+
+(livekit) {
+	reverse_proxy livekit:7880
+}

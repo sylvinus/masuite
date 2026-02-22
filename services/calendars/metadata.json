@@ -1,0 +1,22 @@
+{
+  "label": "Calendars",
+  "description": "Shared calendar (Google Calendar)",
+  "port": 9127,
+  "subdomain": "cal",
+  "redis_db": 7,
+  "default_enabled": false,
+  "is_django": true,
+  "settings_module": "calendars.settings",
+  "settings_overlay": "calendars_local",
+  "backend_service": "calendars-backend",
+  "s3_bucket": null,
+  "logo": null,
+  "services": [
+    "calendars-backend", "calendars-celery", "calendars-frontend",
+    "calendars-caldav"
+  ],
+  "ram": 512,
+  "vcpu": 0.5,
+  "disk": 1024,
+  "github": "https://github.com/suitenumerique/calendars"
+}

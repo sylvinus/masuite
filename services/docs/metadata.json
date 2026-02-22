@@ -1,0 +1,19 @@
+{
+  "label": "Docs",
+  "description": "Collaborative documents (Google Docs)",
+  "port": 9121,
+  "subdomain": "docs",
+  "redis_db": 0,
+  "default_enabled": true,
+  "is_django": true,
+  "settings_module": "impress.settings",
+  "settings_overlay": "impress_local",
+  "backend_service": "docs-backend",
+  "s3_bucket": "docs-storage",
+  "logo": "https://lasuite.numerique.gouv.fr/assets/products/docs.svg",
+  "services": ["docs-backend", "docs-celery", "docs-frontend", "docs-yprovider"],
+  "ram": 512,
+  "vcpu": 0.5,
+  "disk": 1024,
+  "github": "https://github.com/suitenumerique/impress"
+}

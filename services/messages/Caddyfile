@@ -1,0 +1,19 @@
+(messages) {
+	request_body {
+		max_size 100MB
+	}
+
+	handle /api/* {
+		reverse_proxy messages-backend:8000
+	}
+	handle /admin/* {
+		reverse_proxy messages-backend:8000
+	}
+	handle /static/* {
+		reverse_proxy messages-backend:8000
+	}
+
+	handle {
+		reverse_proxy messages-frontend:8080
+	}
+}

@@ -1,0 +1,27 @@
+(calendars) {
+	request_body {
+		max_size 100MB
+	}
+
+	handle /rsvp/* {
+		reverse_proxy calendars-backend:8000
+	}
+
+	handle /ical/* {
+		reverse_proxy calendars-backend:8000
+	}
+
+	handle /api/* {
+		reverse_proxy calendars-backend:8000
+	}
+	handle /admin/* {
+		reverse_proxy calendars-backend:8000
+	}
+	handle /static/* {
+		reverse_proxy calendars-backend:8000
+	}
+
+	handle {
+		reverse_proxy calendars-frontend:8080
+	}
+}

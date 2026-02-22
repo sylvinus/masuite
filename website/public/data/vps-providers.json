@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Hetzner",
+    "url": "https://www.hetzner.com/cloud",
+    "tiers": [
+      { "name": "CX22", "vcpu": 2, "ram": 4, "disk": 40, "price": "4" },
+      { "name": "CX32", "vcpu": 4, "ram": 8, "disk": 80, "price": "7" },
+      { "name": "CX42", "vcpu": 8, "ram": 16, "disk": 160, "price": "14" }
+    ]
+  },
+  {
+    "name": "Scaleway",
+    "url": "https://www.scaleway.com/en/pricing/",
+    "tiers": [
+      { "name": "DEV1-M", "vcpu": 3, "ram": 4, "disk": 40, "price": "10" },
+      { "name": "DEV1-L", "vcpu": 4, "ram": 8, "disk": 80, "price": "17" },
+      { "name": "DEV1-XL", "vcpu": 4, "ram": 12, "disk": 120, "price": "26" }
+    ]
+  }
+]

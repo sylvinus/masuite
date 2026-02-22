@@ -1,0 +1,3 @@
+(projects) {
+	reverse_proxy projects:1337
+}

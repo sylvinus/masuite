@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MaSuite</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, system-ui, sans-serif; background: #f5f5f5;
+           display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .container { max-width: 480px; width: 100%; padding: 2rem; }
+    h1 { margin-bottom: 0.5rem; font-size: 1.5rem; }
+    p { color: #666; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .apps { display: flex; flex-direction: column; gap: 0.5rem; }
+    .app { display: flex; flex-direction: column; padding: 1rem; background: white;
+            border-radius: 8px; text-decoration: none; color: inherit;
+            border: 1px solid #e0e0e0; transition: border-color 0.15s; }
+    .app:hover { border-color: #000091; }
+    .app strong { font-size: 1rem; margin-bottom: 0.25rem; }
+    .app span { font-size: 0.85rem; color: #666; }
+    .loading { color: #999; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MaSuite</h1>
+    <p>La Suite Numerique - self-hosted</p>
+    <div class="apps" id="apps"><span class="loading">Loading...</span></div>
+  </div>
+  <script>
+    fetch('config.json').then(r => r.json()).then(data => {
+      const el = document.getElementById('apps');
+      el.innerHTML = data.apps.map(app =>
+        `<a href="${app.url}" class="app"><strong>${app.name}</strong><span>${app.description}</span></a>`
+      ).join('');
+    }).catch(() => {
+      document.getElementById('apps').innerHTML =
+        '<span class="loading">Run <code>./masuite setup</code> to configure.</span>';
+    });
+  </script>
+</body>
+</html>

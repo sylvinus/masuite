@@ -1,0 +1,19 @@
+{
+  "label": "Drive",
+  "description": "File storage & editing (Google Drive)",
+  "port": 9123,
+  "subdomain": "drive",
+  "redis_db": 2,
+  "default_enabled": false,
+  "is_django": true,
+  "settings_module": "drive.settings",
+  "settings_overlay": "drive_local",
+  "backend_service": "drive-backend",
+  "s3_bucket": "drive-storage",
+  "logo": "https://lasuite.numerique.gouv.fr/assets/products/fichiers.svg",
+  "services": ["drive-backend", "drive-celery", "drive-frontend", "collabora"],
+  "ram": 1024,
+  "vcpu": 1,
+  "disk": 2048,
+  "github": "https://github.com/suitenumerique/drive"
+}

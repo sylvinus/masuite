@@ -1,0 +1,87 @@
+# Meet - Video conferencing
+
+services:
+
+  meet-backend:
+    image: lasuite/meet-backend:${MEET_VERSION:-v1.6.0}
+    profiles: [meet]
+    restart: unless-stopped
+    volumes:
+      - ./config/settings/meet_local.py:/app/meet_local.py:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: meet_local
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SECRET_KEY: ${MEET_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: "*"
+      LOGIN_REDIRECT_URL: "/"
+      LOGIN_REDIRECT_URL_FAILURE: "/"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${MEET_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+      S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_STORAGE_BUCKET_NAME: meet-storage
+      OIDC_RP_CLIENT_ID: masuite
+      OIDC_RP_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      OIDC_OP_AUTHORIZATION_ENDPOINT: ${KEYCLOAK_URL}/realms/masuite/protocol/openid-connect/auth
+      OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/token
+      OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/certs
+      OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/userinfo
+      OIDC_RP_SIGN_ALGO: RS256
+      OIDC_RP_SCOPES: "openid email"
+      MEET_BASE_URL: ${MEET_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_API_URL: ${LIVEKIT_URL:-ws://localhost:7880}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  meet-celery:
+    image: lasuite/meet-backend:${MEET_VERSION:-v1.6.0}
+    profiles: [meet]
+    restart: unless-stopped
+    command: celery -A meet.celery_app worker -l INFO
+    environment:
+      DJANGO_SETTINGS_MODULE: meet.settings
+      DJANGO_CONFIGURATION: Production
+      DJANGO_SECRET_KEY: ${MEET_SECRET_KEY}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${MEET_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  meet-frontend:
+    image: lasuite/meet-frontend:${MEET_VERSION:-v1.6.0}
+    profiles: [meet]
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:${LIVEKIT_VERSION:-v1.8.3}
+    profiles: [meet]
+    restart: unless-stopped
+    command: --config /etc/livekit.yaml
+    volumes:
+      - ./config/livekit/livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "127.0.0.1:7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    environment:
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}

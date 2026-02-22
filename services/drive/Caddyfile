@@ -1,0 +1,38 @@
+(drive) {
+	request_body {
+		max_size 500MB
+	}
+
+	handle /cool/* {
+		reverse_proxy collabora:9980
+	}
+
+	handle /hosting/* {
+		reverse_proxy collabora:9980
+	}
+
+	handle /media/* {
+		forward_auth drive-backend:8000 {
+			uri /api/v1.0/items/media-auth/
+			copy_headers Authorization X-Amz-Date X-Amz-Content-SHA256
+		}
+		rewrite * /drive-storage{uri}
+		reverse_proxy rustfs:9000 {
+			header_up Host rustfs:9000
+		}
+	}
+
+	handle /api/* {
+		reverse_proxy drive-backend:8000
+	}
+	handle /admin/* {
+		reverse_proxy drive-backend:8000
+	}
+	handle /static/* {
+		reverse_proxy drive-backend:8000
+	}
+
+	handle {
+		reverse_proxy drive-frontend:8080
+	}
+}

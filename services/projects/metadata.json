@@ -1,0 +1,19 @@
+{
+  "label": "Projects",
+  "description": "Kanban boards (Trello)",
+  "port": 9125,
+  "subdomain": "projects",
+  "redis_db": null,
+  "default_enabled": false,
+  "is_django": false,
+  "settings_module": null,
+  "settings_overlay": null,
+  "backend_service": "projects",
+  "s3_bucket": "projects-storage",
+  "logo": null,
+  "services": ["projects"],
+  "ram": 256,
+  "vcpu": 0.25,
+  "disk": 1024,
+  "github": "https://github.com/suitenumerique/lasuite-projects"
+}

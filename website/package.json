@@ -1,0 +1,26 @@
+{
+  "name": "masuite-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "sync-apps": "node scripts/sync-apps.js",
+    "dev": "next dev --turbopack -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "lucide-react": "^0.474.0",
+    "next": "^15.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "5.9.3"
+  }
+}

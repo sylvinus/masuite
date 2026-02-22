@@ -1,0 +1,19 @@
+{
+  "label": "Conversations",
+  "description": "AI chatbot (ChatGPT)",
+  "port": 9126,
+  "subdomain": "chat",
+  "redis_db": 5,
+  "default_enabled": false,
+  "is_django": true,
+  "settings_module": "conversations.settings",
+  "settings_overlay": "conversations_local",
+  "backend_service": "conversations-backend",
+  "s3_bucket": "conversations-storage",
+  "logo": null,
+  "services": ["conversations-backend", "conversations-frontend"],
+  "ram": 512,
+  "vcpu": 0.5,
+  "disk": 1024,
+  "github": "https://github.com/suitenumerique/lasuite-conversations"
+}

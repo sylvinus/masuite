@@ -1,0 +1,22 @@
+{
+  "label": "Base system",
+  "description": "Shared infrastructure (PostgreSQL, Keycloak, Redis, Caddy, RustFS)",
+  "is_infrastructure": true,
+  "default_enabled": true,
+  "services": ["caddy", "postgres", "redis", "rustfs", "rustfs-init", "keycloak"],
+  "ports": {
+    "homepage": 9120,
+    "keycloak": 9200,
+    "rustfs_console": 9201
+  },
+  "subdomains": {
+    "homepage": "home",
+    "keycloak": "auth",
+    "rustfs": "s3",
+    "livekit": "livekit"
+  },
+  "ram": 1536,
+  "vcpu": 1,
+  "disk": 2048,
+  "github": "https://github.com/sylvinus/masuite"
+}

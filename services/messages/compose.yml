@@ -1,0 +1,158 @@
+# Messages - Collaborative email
+
+services:
+
+  messages-backend:
+    image: ghcr.io/suitenumerique/messages-backend:${MESSAGES_VERSION:-main}
+    profiles: [messages]
+    restart: unless-stopped
+    volumes:
+      - ./config/settings/messages_local.py:/app/messages_local.py:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: messages_local
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SECRET_KEY: ${MESSAGES_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: "*"
+      MESSAGES_URL: ${MESSAGES_URL:-http://localhost:9124}
+      LOGIN_REDIRECT_URL: "/"
+      LOGIN_REDIRECT_URL_FAILURE: "/"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${MESSAGES_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+      S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ENDPOINT_URL: ${S3_URL:-http://rustfs:9000}
+      AWS_S3_ACCESS_KEY_ID: ${RUSTFS_ACCESS_KEY}
+      AWS_S3_SECRET_ACCESS_KEY: ${RUSTFS_SECRET_KEY}
+      AWS_STORAGE_BUCKET_NAME: messages-storage
+      OIDC_RP_CLIENT_ID: masuite
+      OIDC_RP_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      OIDC_OP_AUTHORIZATION_ENDPOINT: ${KEYCLOAK_URL}/realms/masuite/protocol/openid-connect/auth
+      OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/token
+      OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/certs
+      OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/masuite/protocol/openid-connect/userinfo
+      OIDC_RP_SIGN_ALGO: RS256
+      OIDC_RP_SCOPES: "openid email"
+      OIDC_CREATE_USER: "True"
+      OPENSEARCH_HOST: opensearch
+      OPENSEARCH_PORT: "9200"
+      # Keycloak service account (for user management)
+      IDENTITY_PROVIDER: keycloak
+      KEYCLOAK_REALM: masuite
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_CLIENT_ID: masuite
+      KEYCLOAK_CLIENT_SECRET: ${SHARED_OIDC_CLIENT_SECRET}
+      KEYCLOAK_GROUP_PATH_PREFIX: /maildomain-
+      # Mail
+      MAIL_DOMAIN: ${MESSAGES_MAIL_DOMAIN:-}
+      MDA_API_SECRET: ${MESSAGES_SECRET_KEY}
+      SALT_KEY: ${MESSAGES_SECRET_KEY}
+      MTA_OUT_MODE: relay
+      MTA_OUT_RELAY_HOST: messages-mta-out:587
+      SMTP_RELAY_HOST: ${MESSAGES_SMTP_RELAY_HOST:-}
+      SMTP_RELAY_USER: ${MESSAGES_SMTP_RELAY_USER:-}
+      SMTP_RELAY_PASSWORD: ${MESSAGES_SMTP_RELAY_PASSWORD:-}
+      # Spam
+      SPAM_CONFIG: '{"rspamd_url": "http://rspamd:11334", "rspamd_auth": ""}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+
+  messages-celery:
+    image: ghcr.io/suitenumerique/messages-backend:${MESSAGES_VERSION:-main}
+    profiles: [messages]
+    restart: unless-stopped
+    command: celery -A messages.celery_app worker -l INFO
+    volumes:
+      - ./config/settings/messages_local.py:/app/messages_local.py:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: messages_local
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SECRET_KEY: ${MESSAGES_SECRET_KEY}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${MESSAGES_DB_NAME}
+      DB_USER: ${SHARED_DB_USER}
+      DB_PASSWORD: ${SHARED_DB_PASSWORD}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  messages-frontend:
+    image: ghcr.io/suitenumerique/messages-frontend:${MESSAGES_VERSION:-main}
+    profiles: [messages]
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_LAGAUFRE_WIDGET_API_URL: ${GAUFRE_SERVICES_URL:-}
+      NEXT_PUBLIC_LAGAUFRE_WIDGET_PATH: ${GAUFRE_SCRIPT_URL:-}
+
+  messages-mta-in:
+    image: ghcr.io/suitenumerique/messages-mta-in:${MESSAGES_VERSION:-main}
+    profiles: [messages]
+    restart: unless-stopped
+    ports:
+      - "25:25"
+    environment:
+      MDA_API_BASE_URL: http://messages-backend:8000/api/v1.0/
+      MDA_API_SECRET: ${MESSAGES_SECRET_KEY}
+      MAX_INCOMING_EMAIL_SIZE: "30000000"
+
+  messages-mta-out:
+    image: ghcr.io/suitenumerique/messages-mta-out:${MESSAGES_VERSION:-main}
+    profiles: [messages]
+    restart: unless-stopped
+    environment:
+      MYHOSTNAME: ${MESSAGES_MAIL_DOMAIN:-localhost}
+      SMTP_USERNAME: masuite
+      SMTP_PASSWORD: ${MESSAGES_SECRET_KEY}
+      SMTP_RELAY_HOST: ${MESSAGES_SMTP_RELAY_HOST:-}
+      SMTP_RELAY_USERNAME: ${MESSAGES_SMTP_RELAY_USER:-}
+      SMTP_RELAY_PASSWORD: ${MESSAGES_SMTP_RELAY_PASSWORD:-}
+
+  messages-socks-proxy:
+    image: ghcr.io/suitenumerique/messages-socks-proxy:${MESSAGES_VERSION:-main}
+    profiles: [messages]
+    restart: unless-stopped
+    environment:
+      PROXY_USERS: "masuite:${MESSAGES_SECRET_KEY}"
+
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION:-2.19.0}
+    profiles: [messages]
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ./data/opensearch:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rspamd:
+    image: rspamd/rspamd:${RSPAMD_VERSION:-3.14}
+    profiles: [messages]
+    restart: unless-stopped

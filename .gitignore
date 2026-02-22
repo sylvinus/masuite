@@ -1,0 +1,13 @@
+.env
+/data/
+backups/
+config/caddy/Caddyfile
+config/homepage/config.json
+config/homepage/gaufre-services.json
+config/livekit/livekit.yaml
+config/docs-theme.json
+website/public/data/apps.json
+website/public/data/infra.json
+__pycache__/
+*.pyc
+.venv/

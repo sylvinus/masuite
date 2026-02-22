@@ -1,0 +1,23 @@
+# MaSuite - Self-hosted La Suite Numerique
+# https://github.com/suitenumerique/masuite
+#
+# Services are controlled via COMPOSE_PROFILES in .env
+# Available profiles: docs, meet, drive, messages, projects, conversations, calendars
+
+include:
+  - path: services/_base/compose.yml
+    project_directory: .
+  - path: services/docs/compose.yml
+    project_directory: .
+  - path: services/meet/compose.yml
+    project_directory: .
+  - path: services/drive/compose.yml
+    project_directory: .
+  - path: services/messages/compose.yml
+    project_directory: .
+  - path: services/projects/compose.yml
+    project_directory: .
+  - path: services/conversations/compose.yml
+    project_directory: .
+  - path: services/calendars/compose.yml
+    project_directory: .
